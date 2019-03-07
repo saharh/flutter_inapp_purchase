@@ -89,6 +89,8 @@
         [self getAvailableItems:result];
     } else if ([@"getAppStoreInitiatedProducts" isEqualToString:call.method]) {
         [self getAppStoreInitiatedProducts:result];
+    } else if ([@"getiOSReceipt" isEqualToString:call.method]) {
+        [self getiOSReceipt: result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -331,6 +333,14 @@
 
     // additionally send event
     [self.channel invokeMethod:@"iap-purchase-event" arguments: purchase];
+}
+
+- (void) getiOSReceipt:(FlutterResult)result {
+    NSData *receiptData;
+    if (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_7_0) {
+        receiptData = [NSData dataWithContentsOfURL:[[NSBundle mainBundle] appStoreReceiptURL]];
+    }
+    result([receiptData base64EncodedStringWithOptions:0]);
 }
 
 - (NSDictionary *)getPurchaseData:(SKPaymentTransaction *)transaction {

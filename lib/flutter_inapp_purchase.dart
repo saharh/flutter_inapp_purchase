@@ -306,6 +306,18 @@ class FlutterInappPurchase {
         code: Platform.operatingSystem, message: "platform not supported");
   }
 
+  static Future<String> getiOSReceipt() async {
+    if (Platform.isIOS) {
+      String result = await _channel.invokeMethod('getiOSReceipt');
+
+      return result;
+    } else if (Platform.isAndroid) {
+      return null;
+    }
+    throw PlatformException(
+        code: Platform.operatingSystem, message: "platform not supported");
+  }
+
   /// End Play Store connection on `Android`.
   ///
   /// Absolutely necessary to call this when done with the Play Store.
