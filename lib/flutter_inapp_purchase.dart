@@ -317,10 +317,23 @@ class FlutterInappPurchase {
       return result;
     } else if (Platform.isAndroid) {
       return null;
+    } else {
+      throw PlatformException(
+          code: Platform.operatingSystem, message: "platform not supported");
     }
-    throw PlatformException(
-        code: Platform.operatingSystem, message: "platform not supported");
   }
+
+  static Future refreshiOSReceipt() async {
+    if (Platform.isIOS) {
+      await _channel.invokeMethod('refreshiOSReceipt');
+    } else if (Platform.isAndroid) {
+      return;
+    } else {
+      throw PlatformException(
+          code: Platform.operatingSystem, message: "platform not supported");
+    }
+  }
+
 
   /// End Play Store connection on `Android`.
   ///

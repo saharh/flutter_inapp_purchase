@@ -6,7 +6,7 @@
     FlutterResult flutterResult;
 }
 
-@property (atomic, retain) NSMutableDictionary<NSValue*, FlutterResult>* fetchProducts;
+@property (atomic, retain) NSMutableDictionary<NSValue*, FlutterResult>* fetchRequests;
 @property (atomic, retain) NSMutableDictionary<SKPayment*, FlutterResult>* requestedPayments;
 @property (atomic, retain) NSArray<SKProduct*>* products;
 @property (atomic, retain) NSMutableArray<SKProduct*>* appStoreInitiatedProducts;
@@ -17,7 +17,7 @@
 
 @implementation FlutterInappPurchasePlugin
 
-@synthesize fetchProducts;
+@synthesize fetchRequests;
 @synthesize requestedPayments;
 @synthesize products;
 @synthesize appStoreInitiatedProducts;
@@ -35,7 +35,7 @@
 
 - (instancetype)init {
     self = [super init];
-    self.fetchProducts = [[NSMutableDictionary alloc] init];
+    self.fetchRequests = [[NSMutableDictionary alloc] init];
     self.requestedPayments = [[NSMutableDictionary alloc] init];
     self.products = [[NSArray alloc] init];
     self.appStoreInitiatedProducts = [[NSMutableArray alloc] init];
@@ -91,6 +91,8 @@
         [self getAppStoreInitiatedProducts:result];
     } else if ([@"getiOSReceipt" isEqualToString:call.method]) {
         [self getiOSReceipt: result];
+    } else if ([@"refreshiOSReceipt" isEqualToString:call.method]) {
+        [self refreshiOSReceipt: result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -106,7 +108,7 @@
     if (identifiers != nil && result != nil) {
         SKProductsRequest* request = [[SKProductsRequest alloc] initWithProductIdentifiers:[NSSet setWithArray:identifiers]];
         [request setDelegate:self];
-        [fetchProducts setObject:result forKey:[NSValue valueWithNonretainedObject:request]];
+        [fetchRequests setObject:result forKey:[NSValue valueWithNonretainedObject:request]];
 
         [request start];
     } else if (result != nil){
@@ -119,9 +121,9 @@
 
 - (void)request:(SKRequest *)request didFailWithError:(NSError *)error {
     NSValue* key = [NSValue valueWithNonretainedObject:request];
-    FlutterResult result = [fetchProducts objectForKey:key];
+    FlutterResult result = [fetchRequests objectForKey:key];
     if (result != nil) {
-        [fetchProducts removeObjectForKey:key];
+        [fetchRequests removeObjectForKey:key];
         result([FlutterError
                 errorWithCode:[self standardErrorCode:(int)error.code]
                 message:[self englishErrorCodeDescription:(int)error.code]
@@ -131,9 +133,9 @@
 
 - (void)productsRequest:(nonnull SKProductsRequest *)request didReceiveResponse:(nonnull SKProductsResponse *)response {
     NSValue* key = [NSValue valueWithNonretainedObject:request];
-    FlutterResult result = [fetchProducts objectForKey:key];
+    FlutterResult result = [fetchRequests objectForKey:key];
     if (result == nil) return;
-    [fetchProducts removeObjectForKey:key];
+    [fetchRequests removeObjectForKey:key];
     products = [response products];
 
     NSMutableArray<NSDictionary*>* allValues = [[NSMutableArray alloc] init];
@@ -341,6 +343,21 @@
         receiptData = [NSData dataWithContentsOfURL:[[NSBundle mainBundle] appStoreReceiptURL]];
     }
     result([receiptData base64EncodedStringWithOptions:0]);
+}
+
+- (void) refreshiOSReceipt:(FlutterResult)result {
+    SKReceiptRefreshRequest *request = [[SKReceiptRefreshRequest alloc] init];
+    [request setDelegate:self];
+    [fetchRequests setObject:result forKey:[NSValue valueWithNonretainedObject:request]];
+    [request start];
+}
+
+- (void)requestDidFinish:(SKRequest *)request NS_AVAILABLE(10_7, 3_0) {
+    NSValue* key = [NSValue valueWithNonretainedObject:request];
+    FlutterResult result = [fetchRequests objectForKey:key];
+    if (result == nil) return;
+    [fetchRequests removeObjectForKey:key];
+    result(nil);
 }
 
 - (NSDictionary *)getPurchaseData:(SKPaymentTransaction *)transaction {
