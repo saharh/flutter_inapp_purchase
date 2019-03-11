@@ -284,10 +284,12 @@ class FlutterInappPurchase {
           PurchasedItem item = PurchasedItem.fromJSON(param);
           return item;
         });
+        rethrow;
       }
+    } else {
+      throw PlatformException(
+          code: Platform.operatingSystem, message: "platform not supported");
     }
-    throw PlatformException(
-        code: Platform.operatingSystem, message: "platform not supported");
   }
 
   /// Consumes a purchase on `Android`.
