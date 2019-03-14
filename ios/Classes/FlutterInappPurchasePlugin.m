@@ -128,6 +128,7 @@
                 errorWithCode:[self standardErrorCode:(int)error.code]
                 message:[self englishErrorCodeDescription:(int)error.code]
                 details:nil]);
+        NSLog(@"\n\n\n\n\n\n request didFailWithError, error: %@ (%ld) !! \n\n\n\n\n", error, error.code);
     }
 }
 
@@ -311,7 +312,7 @@
                         message:[self englishErrorCodeDescription:(int)transaction.error.code]
                         details:nil
                 ]);
-                NSLog(@"\n\n\n\n\n\n Purchase Failed  !! \n\n\n\n\n");
+                NSLog(@"\n\n\n\n\n\n Purchase Failed, error: %@ (%ld) !! \n\n\n\n\n", transaction.error, transaction.error.code);
                 break;
         }
     }
