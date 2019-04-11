@@ -1,41 +1,39 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:meta/meta.dart';
-import 'package:platform/platform.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
+import 'package:platform/platform.dart';
 
-import 'utils.dart';
 import 'modules.dart';
+import 'utils.dart';
 
 export 'modules.dart';
 
 /// A enumeration of in-app purchase types for Android
 /// https://developer.android.com/reference/com/android/billingclient/api/BillingClient.SkuType.html#constants_2
-enum _TypeInApp {
-  inapp, subs
-}
+enum _TypeInApp { inapp, subs }
 
 class FlutterInappPurchase {
-
   static StreamController<PurchasedItem> _purchaseController;
   static StreamSubscription _purchaseSub;
+
   static Stream<PurchasedItem> get onAdditionalSuccessPurchaseIOS => _purchaseController.stream;
 
   /// Defining the [MethodChannel] for Flutter_Inapp_Purchase
   static final MethodChannel _channel = const MethodChannel('flutter_inapp');
+
   static MethodChannel get channel => _channel;
 
   final Platform _pf;
   final http.Client _httpClient;
 
   static Platform get _platform => _instance._pf;
+
   static http.Client get _client => _instance._httpClient;
 
-
-  static FlutterInappPurchase _instance = FlutterInappPurchase(
-      FlutterInappPurchase.private(const LocalPlatform()));
+  static FlutterInappPurchase _instance = FlutterInappPurchase(FlutterInappPurchase.private(const LocalPlatform()));
 
   factory FlutterInappPurchase(FlutterInappPurchase instance) {
     _instance = instance;
@@ -65,8 +63,7 @@ class FlutterInappPurchase {
     } else if (_platform.isIOS) {
       return 'no-ops in ios';
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Prepares `Android` to purchase items.
@@ -82,8 +79,7 @@ class FlutterInappPurchase {
       final String result = await _channel.invokeMethod('canMakePayments');
       return result;
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// InitConnection `Android` to purchase items.
@@ -98,8 +94,7 @@ class FlutterInappPurchase {
       final String result = await _channel.invokeMethod('canMakePayments');
       return result;
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Retrieves a list of products from the store on `Android` and `iOS`.
@@ -128,8 +123,7 @@ class FlutterInappPurchase {
 
       return extractItems(json.encode(result));
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Retrieves subscriptions on `Android` and `iOS`.
@@ -158,8 +152,7 @@ class FlutterInappPurchase {
 
       return extractItems(json.encode(result));
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Retrieves the user's purchase history on `Android` and `iOS` regardless of consumption status.
@@ -182,19 +175,15 @@ class FlutterInappPurchase {
         },
       );
 
-      List<dynamic> results = await Future.wait(
-          [getInappPurchaseHistory, getSubsPurchaseHistory]);
+      List<dynamic> results = await Future.wait([getInappPurchaseHistory, getSubsPurchaseHistory]);
 
-      return results.reduce((result1, result2) =>
-      extractPurchased(result1) + extractPurchased(result2));
+      return results.reduce((result1, result2) => extractPurchased(result1) + extractPurchased(result2));
     } else if (_platform.isIOS) {
-      dynamic result =
-          await _channel.invokeMethod('getAvailableItems');
+      dynamic result = await _channel.invokeMethod('getAvailableItems');
 
       return extractPurchased(json.encode(result));
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Get all non-consumed purchases made on `Android` and `iOS`.
@@ -218,13 +207,11 @@ class FlutterInappPurchase {
 
       return extractPurchased(result1) + extractPurchased(result2);
     } else if (_platform.isIOS) {
-      dynamic result =
-          await _channel.invokeMethod('getAvailableItems');
+      dynamic result = await _channel.invokeMethod('getAvailableItems');
 
       return extractPurchased(json.encode(result));
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Purchase a product on `Android` or `iOS`.
@@ -232,8 +219,7 @@ class FlutterInappPurchase {
   /// Identical to [buySubscription] on `iOS`.
   static Future<PurchasedItem> buyProduct(String sku) async {
     if (_platform.isAndroid) {
-      dynamic result = await _channel
-          .invokeMethod('buyItemByType', <String, dynamic>{
+      dynamic result = await _channel.invokeMethod('buyItemByType', <String, dynamic>{
         'type': EnumUtil.getValueString(_TypeInApp.inapp),
         'sku': sku,
         'oldSku': null, //TODO can this be removed?
@@ -245,8 +231,7 @@ class FlutterInappPurchase {
       return item;
     } else if (_platform.isIOS) {
       try {
-        dynamic result = await _channel.invokeMethod(
-            'buyProductWithFinishTransaction', <String, dynamic>{
+        dynamic result = await _channel.invokeMethod('buyProductWithFinishTransaction', <String, dynamic>{
           'sku': sku,
         });
         result = json.encode(result);
@@ -266,8 +251,7 @@ class FlutterInappPurchase {
         });
       }
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Purchase a subscription on `Android` or `iOS`.
@@ -275,11 +259,9 @@ class FlutterInappPurchase {
   /// **NOTICE** second parameter is required on `Android`.
   ///
   /// Identical to [buyProduct] on `iOS`.
-  static Future<PurchasedItem> buySubscription(String sku,
-      {String oldSku}) async {
+  static Future<PurchasedItem> buySubscription(String sku, {String oldSku}) async {
     if (_platform.isAndroid) {
-      dynamic result = await _channel
-          .invokeMethod('buyItemByType', <String, dynamic>{
+      dynamic result = await _channel.invokeMethod('buyItemByType', <String, dynamic>{
         'type': EnumUtil.getValueString(_TypeInApp.subs),
         'sku': sku,
         'oldSku': oldSku,
@@ -290,8 +272,7 @@ class FlutterInappPurchase {
       return item;
     } else if (_platform.isIOS) {
       try {
-        dynamic result = await _channel.invokeMethod(
-            'buyProductWithFinishTransaction', <String, dynamic>{
+        dynamic result = await _channel.invokeMethod('buyProductWithFinishTransaction', <String, dynamic>{
           'sku': sku,
         });
         result = json.encode(result);
@@ -311,8 +292,7 @@ class FlutterInappPurchase {
         });
       }
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Consumes a purchase on `Android`.
@@ -320,8 +300,7 @@ class FlutterInappPurchase {
   /// No effect on `iOS`, whose consumable purchases are consumed at the time of purchase.
   static Future<String> consumePurchase(String token) async {
     if (_platform.isAndroid) {
-      String result =
-          await _channel.invokeMethod('consumeProduct', <String, dynamic>{
+      String result = await _channel.invokeMethod('consumeProduct', <String, dynamic>{
         'token': token,
       });
 
@@ -329,8 +308,28 @@ class FlutterInappPurchase {
     } else if (_platform.isIOS) {
       return 'no-ops in ios';
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
+  }
+
+  static Future<String> getiOSReceipt() async {
+    if (_platform.isIOS) {
+      String result = await _channel.invokeMethod('getiOSReceipt');
+      return result;
+    } else if (_platform.isAndroid) {
+      return null;
+    } else {
+      throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
+    }
+  }
+
+  static Future refreshiOSReceipt() async {
+    if (_platform.isIOS) {
+      await _channel.invokeMethod('refreshiOSReceipt');
+    } else if (_platform.isAndroid) {
+      return;
+    } else {
+      throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
+    }
   }
 
   /// End Play Store connection on `Android`.
@@ -345,8 +344,7 @@ class FlutterInappPurchase {
     } else if (_platform.isIOS) {
       return 'no-ops in ios';
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Buy a product without finishing the transaction on `iOS`.
@@ -355,11 +353,9 @@ class FlutterInappPurchase {
   ///
   /// No effect on `Android`, who does not allow this type of functionality.
   @deprecated
-  static Future<PurchasedItem> buyProductWithoutFinishTransaction(
-      String sku) async {
+  static Future<PurchasedItem> buyProductWithoutFinishTransaction(String sku) async {
     if (_platform.isAndroid) {
-      dynamic result = await _channel
-          .invokeMethod('buyItemByType', <String, dynamic>{
+      dynamic result = await _channel.invokeMethod('buyItemByType', <String, dynamic>{
         'type': EnumUtil.getValueString(_TypeInApp.inapp),
         'sku': sku,
         'oldSku': null,
@@ -369,8 +365,7 @@ class FlutterInappPurchase {
       PurchasedItem item = PurchasedItem.fromJSON(param);
       return item;
     } else if (_platform.isIOS) {
-      dynamic result = await _channel.invokeMethod(
-          'buyProductWithoutFinishTransaction', <String, dynamic>{
+      dynamic result = await _channel.invokeMethod('buyProductWithoutFinishTransaction', <String, dynamic>{
         'sku': sku,
       });
       result = json.encode(result);
@@ -379,8 +374,7 @@ class FlutterInappPurchase {
       PurchasedItem item = PurchasedItem.fromJSON(param);
       return item;
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Finish a transaction on `iOS`.
@@ -395,8 +389,7 @@ class FlutterInappPurchase {
       String result = await _channel.invokeMethod('finishTransaction');
       return result;
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Retrieves a list of products that have been attempted to purchase through the App Store `iOS` only.
@@ -405,13 +398,11 @@ class FlutterInappPurchase {
     if (_platform.isAndroid) {
       return List<IAPItem>();
     } else if (_platform.isIOS) {
-      dynamic result =
-          await _channel.invokeMethod('getAppStoreInitiatedProducts');
+      dynamic result = await _channel.invokeMethod('getAppStoreInitiatedProducts');
 
       return extractItems(json.encode(result));
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Check if a subscription is active on `Android` and `iOS`.
@@ -428,10 +419,8 @@ class FlutterInappPurchase {
       var history = await FlutterInappPurchase.getPurchaseHistory();
 
       for (var purchase in history) {
-        Duration difference =
-            DateTime.now().difference(purchase.transactionDate);
-        if (difference.inMinutes <= (duration + grace).inMinutes &&
-            purchase.productId == sku) return true;
+        Duration difference = DateTime.now().difference(purchase.transactionDate);
+        if (difference.inMinutes <= (duration + grace).inMinutes && purchase.productId == sku) return true;
       }
 
       return false;
@@ -444,8 +433,7 @@ class FlutterInappPurchase {
 
       return false;
     }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
+    throw PlatformException(code: _platform.operatingSystem, message: "platform not supported");
   }
 
   /// Validate receipt in ios
@@ -466,9 +454,7 @@ class FlutterInappPurchase {
     assert(receiptBody != null);
     assert(isTest != null);
 
-    final String url = isTest
-        ? 'https://sandbox.itunes.apple.com/verifyReceipt'
-        : 'https://buy.itunes.apple.com/verifyReceipt';
+    final String url = isTest ? 'https://sandbox.itunes.apple.com/verifyReceipt' : 'https://buy.itunes.apple.com/verifyReceipt';
     return await http.post(
       url,
       headers: {
