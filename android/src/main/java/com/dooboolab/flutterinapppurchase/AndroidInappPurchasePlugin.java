@@ -99,7 +99,7 @@ public class AndroidInappPurchasePlugin implements MethodCallHandler {
 
             try {
                 reg.context().bindService(intent, mServiceConn, Context.BIND_AUTO_CREATE);
-                mBillingClient = BillingClient.newBuilder(reg.context()).setListener(purchasesUpdatedListener).build();
+                mBillingClient = BillingClient.newBuilder(reg.context()).enablePendingPurchases().setListener(purchasesUpdatedListener).build();
                 mBillingClient.startConnection(new BillingClientStateListener() {
                     @Override
                     public void onBillingSetupFinished(BillingResult billingResult) {
